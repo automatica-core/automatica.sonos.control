@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Automatica.Core.Base.IO;
 using Automatica.Core.EF.Models;
-using Automatica.Core.Rule;
+using Automatica.Core.Logic;
 
-namespace P3.Rule.Sonos.SonosControl;
+namespace P3.Logic.Sonos.SonosControl;
 
-public class SonosControlRule : Automatica.Core.Rule.Rule
+public class SonosControlLogic : Automatica.Core.Logic.Logic
 {
-    private readonly IRuleContext _context;
+    private readonly ILogicContext _context;
 
     //Inputs
     private readonly RuleInterfaceInstance _playPauseTrigger;
@@ -42,50 +42,50 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
     private long _currentVolume;
     private bool _currentlyPlaying = false;
 
-    public SonosControlRule(IRuleContext context) : base(context)
+    public SonosControlLogic(ILogicContext context) : base(context)
     {
         _context = context;
 
         //Inputs
         _playPauseTrigger = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.PlayPauseTrigger);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.PlayPauseTrigger);
         _playPauseInputState = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.PauseTrigger);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.PauseTrigger);
         _volume = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.Volume);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.Volume);
         _volumeIncrement = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.VolumeIncrement);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.VolumeIncrement);
         _volumeDecrement = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.VolumeDecrement);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.VolumeDecrement);
         _next = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.Next);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.Next);
         _radioStationInput = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.RadioStationInput);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.RadioStationInput);
 
         //Params
         _volumeOnPlay = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.VolumeOnPlay);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.VolumeOnPlay);
         _radioStation = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.RadioStation);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.RadioStation);
         _maxVolume = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.MaxVolume);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.MaxVolume);
 
 
         //Outputs
         _playOutputStatus = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.PlayOutputStatus);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.PlayOutputStatus);
         _pauseOutputStatus = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.PauseOutputStatus);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.PauseOutputStatus);
         _volumeOutputStatus = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.VolumeOutputStatus);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.VolumeOutputStatus);
         _radioStationOutputValue = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.RadioStationOutputValue);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.RadioStationOutputValue);
         _nextOutput = context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
-            a.This2RuleInterfaceTemplate == SonosControlRuleFactory.NextOutput);
+            a.This2RuleInterfaceTemplate == SonosControlLogicFactory.NextOutput);
 
     }
 
-    protected override void ParamterValueChanged(RuleInterfaceInstance instance, IDispatchable source, object value)
+    protected override void ParameterValueChanged(RuleInterfaceInstance instance, IDispatchable source, object value)
     {
         if (instance.This2RuleInterfaceTemplate == _volumeOnPlay.This2RuleInterfaceTemplate)
         {
@@ -100,10 +100,10 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
             _maxVolumeValue = Convert.ToInt64(value);
         }
 
-        base.ParamterValueChanged(instance, source, value);
+        base.ParameterValueChanged(instance, source, value);
     }
 
-    public override Task<bool> Start()
+    public override Task<bool> Start(CancellationToken token = default)
     {
         _volumeOnPlayValue = Context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
             a.This2RuleInterfaceTemplate == _volumeOnPlay.This2RuleInterfaceTemplate)!.ValueInteger!.Value;
@@ -114,13 +114,13 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
         _maxVolumeValue = Context.RuleInstance.RuleInterfaceInstance.SingleOrDefault(a =>
             a.This2RuleInterfaceTemplate == _maxVolume.This2RuleInterfaceTemplate)!.ValueInteger!.Value;
 
-        return base.Start();
+        return base.Start(token);
     }
 
 
-    protected override IList<IRuleOutputChanged> InputValueChanged(RuleInterfaceInstance instance, IDispatchable source, object value)
+    protected override IList<ILogicOutputChanged> InputValueChanged(RuleInterfaceInstance instance, IDispatchable source, object value)
     {
-        var ret = new List<IRuleOutputChanged>();
+        var ret = new List<ILogicOutputChanged>();
         
 
         if (instance.This2RuleInterfaceTemplate == _volume.This2RuleInterfaceTemplate)
@@ -137,15 +137,15 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
                 _currentVolume = _volumeOnPlayValue;
                 _currentlyPlaying = true;
 
-                ret.Add(new RuleOutputChanged(_radioStationOutputValue, _radioStationValue));
-                ret.Add(new RuleOutputChanged(_pauseOutputStatus, false));
-                ret.Add(new RuleOutputChanged(_volumeOutputStatus, _currentVolume));
-                ret.Add(new RuleOutputChanged(_playOutputStatus, true));
+                ret.Add(new LogicOutputChanged(_radioStationOutputValue, _radioStationValue));
+                ret.Add(new LogicOutputChanged(_pauseOutputStatus, false));
+                ret.Add(new LogicOutputChanged(_volumeOutputStatus, _currentVolume));
+                ret.Add(new LogicOutputChanged(_playOutputStatus, true));
             }
             else
             {
-                ret.Add(new RuleOutputChanged(_pauseOutputStatus, true));
-                ret.Add(new RuleOutputChanged(_playOutputStatus, false));
+                ret.Add(new LogicOutputChanged(_pauseOutputStatus, true));
+                ret.Add(new LogicOutputChanged(_playOutputStatus, false));
             }
         }
         if (instance.This2RuleInterfaceTemplate == _playPauseInputState.This2RuleInterfaceTemplate)
@@ -163,7 +163,7 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
                 }
 
                 _currentVolume++;
-                ret.Add(new RuleOutputChanged(_volumeOutputStatus, _currentVolume));
+                ret.Add(new LogicOutputChanged(_volumeOutputStatus, _currentVolume));
             }
         }
 
@@ -177,7 +177,7 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
                 }
 
                 _currentVolume--;
-                ret.Add(new RuleOutputChanged(_volumeOutputStatus, _currentVolume));
+                ret.Add(new LogicOutputChanged(_volumeOutputStatus, _currentVolume));
             }
         }
         if (instance.This2RuleInterfaceTemplate == _volume.This2RuleInterfaceTemplate)
@@ -191,7 +191,7 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
                 }
 
                 _currentVolume = volume;
-                ret.Add(new RuleOutputChanged(_volumeOutputStatus, _currentVolume));
+                ret.Add(new LogicOutputChanged(_volumeOutputStatus, _currentVolume));
             }
         }
 
@@ -199,15 +199,15 @@ public class SonosControlRule : Automatica.Core.Rule.Rule
         {
             if (_currentlyPlaying)
             {
-                Context.Dispatcher.DispatchValue(new RuleOutputChanged(_nextOutput, true).Instance, true);
+                Context.Dispatcher.DispatchValue(new LogicOutputChanged(_nextOutput, true).Instance, true);
                 Thread.Sleep(100);
-                Context.Dispatcher.DispatchValue(new RuleOutputChanged(_nextOutput, false).Instance, false);
+                Context.Dispatcher.DispatchValue(new LogicOutputChanged(_nextOutput, false).Instance, false);
             }
         }
 
         if (instance.This2RuleInterfaceTemplate == _radioStationInput.This2RuleInterfaceTemplate)
         {
-            ret.Add(new RuleOutputChanged(_radioStationOutputValue, _radioStationValue));
+            ret.Add(new LogicOutputChanged(_radioStationOutputValue, _radioStationValue));
         }
 
         return ret;

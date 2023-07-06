@@ -3,10 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28124.53
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P3.Rule.Sonos", "P3.Rule.Sonos\P3.Rule.Sonos.csproj", "{2BFF9C23-06A4-4E6F-8BC5-0F92EF237346}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P3.Logic.Sonos", "P3.Logic.Sonos\P3.Logic.Sonos.csproj", "{2BFF9C23-06A4-4E6F-8BC5-0F92EF237346}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P3.Rule.Sonos.Tests", "P3.Rule.Sonos.Test\P3.Rule.Sonos.Tests.csproj", "{0BF084B3-68A8-42F1-8355-94CE769377ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "P3.Logic.Sonos.Tests", "P3.Logic.Sonos.Test\P3.Logic.Sonos.Tests.csproj", "{0BF084B3-68A8-42F1-8355-94CE769377ED}"
 EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
